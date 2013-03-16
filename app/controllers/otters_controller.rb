@@ -1,15 +1,15 @@
 class OttersController < ApplicationController
   def index
-    # if params[:topLat] and params[:topLong] and params[:bottomLat] and params[:bottomLong]
+    if params[:topLat] and params[:topLong] and params[:bottomLat] and params[:bottomLong]
       top_lat     = params[:topLat].to_f
       top_long    = params[:topLong].to_f
       bottom_lat  = params[:bottomLat].to_f
       bottom_long = params[:bottomLong].to_f
 
       render :json => otter_hash(top_lat, top_long, bottom_lat, bottom_long)
-    # else
-    #   render :json => { :errors => ['must specify four latitude and longitude points as URL params'] }
-    # end
+    else
+      render :json => { :errors => ['must specify four latitude and longitude points as URL params'] }
+    end
   end
 
   private
