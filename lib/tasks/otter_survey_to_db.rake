@@ -1,4 +1,5 @@
 require 'csv'
+require 'OSGB36'
 
 namespace :otter_survey_to_db do
   desc "Importing CSV data to database"
@@ -36,7 +37,11 @@ namespace :otter_survey_to_db do
 
     
     otter_data.each do |row|
-      OtterSurvey.create(:alt                => row[alt], 
+      lat_lon  = OSGB36.en_to_ll(row[easting].to_i,row[northing].to_i)
+      lat  = lat_lon[:latitude].to_s
+      long = lat_lon[:longitude].to_s
+      OtterSurvey.create(
+                         :alt                => row[alt], 
                          :county             => row[county], 
                          :date_v1            => row[date_v1], 
                          :date_v2            => row[date_v2], 
@@ -57,7 +62,10 @@ namespace :otter_survey_to_db do
                          :v2                 => row[v2], 
                          :v3                 => row[v3], 
                          :v4                 => row[v4], 
-                         :v5                 => row[v5])
+                         :v5                 => row[v5],
+                         :lat                => lat,
+                         :long               => long
+                         )
     end
   end
 
