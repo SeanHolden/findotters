@@ -38,8 +38,8 @@ namespace :otter_survey_to_db do
     
     otter_data.each do |row|
       lat_lon  = OSGB36.en_to_ll(row[easting].to_i,row[northing].to_i)
-      lat  = lat_lon[:latitude].to_s
-      long = lat_lon[:longitude].to_s
+      lat  = lat_lon[:latitude]
+      long = lat_lon[:longitude]
       OtterSurvey.create(
                          :alt                => row[alt], 
                          :county             => row[county], 
