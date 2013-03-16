@@ -1,19 +1,22 @@
 class OttersController < ApplicationController
   def index
-    top_lat     = params[:topLat]
-    top_long    = params[:topLong]
-    bottom_lat  = params[:bottomLat]
-    bottom_long = params[:bottomLong]
+    # if params[:topLat] and params[:topLong] and params[:bottomLat] and params[:bottomLong]
+      top_lat     = params[:topLat].to_f
+      top_long    = params[:topLong].to_f
+      bottom_lat  = params[:bottomLat].to_f
+      bottom_long = params[:bottomLong].to_f
 
-    otter_survey = OtterSurvey.where()
-
-    render :json => otter_hash
+      render :json => otter_hash(top_lat, top_long, bottom_lat, bottom_long)
+    # else
+    #   render :json => { :errors => ['must specify four latitude and longitude points as URL params'] }
+    # end
   end
 
   private
 
   def otter_hash(top_lat, top_long, bottom_lat, bottom_long)
-    otter_survey = OtterSurvey.all
+    otter_survey = OtterSurvey.where("otter_surveys.lat < ? AND otter_surveys.lat > ? AND otter_surveys.long < ? AND otter_surveys.long > ?", top_lat, bottom_lat, top_long, bottom_long)
+
     hsh = {
       :otters=>
         otter_survey.map do |row|
