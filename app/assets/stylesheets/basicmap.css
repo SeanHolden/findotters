@@ -1,0 +1,24 @@
+
+html,body {
+  height: 100%;
+}
+
+#canvas {
+  width: 1200px;
+  height: 700px;
+}
+
+#map {
+  /*width: 800px;
+  height: 500px;
+  float: right*/
+  border: 1px solid black;
+  height: 500px;
+}
+
+/*
+#search {  
+  width: 100px;  
+  border: 0px; 
+  float: left
+}*/

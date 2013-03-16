@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Map with markers</title>
+    
+    <!-- Using JH's API key - change if you want to access via a non-localhost url  -->
+    <script type="text/javascript"
+      src="http://openspace.ordnancesurvey.co.uk/osmapapi/openspace.js?key=D7875AA835649C09E0405F0AC8607A15"></script>
+
+    
+    <script>
+        var osMap;
+        var markers;
+        var otterIcon;
+        var postCodeService;
+
+        function doSearch() {
+          var name_element = document.getElementById("searchparam1");
+          console.log("Searching for " + name_element.value);
+        }
+
+        function loadOtterIcon() {
+          var size = new OpenLayers.Size(75,75);
+          var offset = new OpenLayers.Pixel(-size.w/2, -size.h/2);
+          otterIcon = new OpenSpace.Icon('http://oterspotter.herokuapp/otter.png', size, offset);
+                      console.log("Otter icon has been loaded");
+        }
+
+        function addMarker(pos, icon, content) {
+          marker = osMap.createMarker(pos,icon,content);
+          marker.map = osMap;
+          markers.addMarker(marker);
+              }
+
+        function getNearestOtter(dataset) {
+                      // TODO
+                    }
+
+        // returns the date of the last sighting
+        // for a particular otter site.
+                    // returns null if the sighting was never made
+              function getLastSightingDate(data) {
+                      if (data.v5 == 'P') {
+                        return data.dateV5
+                      } else if (data.v4 == 'P') {
+                        return data.dateV4;
+                      } else if (data.v3 == 'P') {
+                        return data.dateV3;
+                      } else if (data.v2 == 'P') {
+                        return data.dateV2;
+                      } else if (data.v1 == 'P') {
+                        return data.dateV1;
+                      } else {
+      return null;
+                      }
+                    }
+
+        function addOtter(longitude, latitude, data) {
+          // TODO - remove these if statements when data is actually being passed in
+          if (data) {
+                        var lonlat = new OpenLayers.LonLat(data.long, data.lat);
+                      } else {
+            var lonlat = new OpenLayers.LonLat(longitude, latitude);
+          }
+          var gridProjection = new OpenSpace.GridProjection();
+          var pos = gridProjection.getMapPointFromLonLat(lonlat);
+          if (data) { 
+                        var content = 'Site name: '+data.siteName+'<br />Date sighted: '+getLastSightingDate(data);
+            if (data.mink == 'P') {
+              content = content + '<br/>Mink also present';
+            }
+          } else {
+                        var content = 'Otter!';
+                      }
+          addMarker(pos,otterIcon.clone(),content);
+        }
+        
+        var gl;
+        
+        function displayPosition(position) {
+          var lonlat = new OpenLayers.LonLat(position.coords.longitude, position.coords.latitude);
+          var gridProjection = new OpenSpace.GridProjection();
+          var pos = gridProjection.getMapPointFromLonLat(lonlat); 
+          var p = document.getElementById("yourLocation");
+          var content = 'Details about map point: <br/> ' + pos.toString()
+          addMarker(pos,null,content);
+          
+          osMap.setCenter(pos, 9)
+          displayOttersNearCurrentLocation();
+          
+          p.innerHTML = "<table border='1'><tr><th>Timestamp</th><td>" + position.timestamp +
+          "<tr><th>Latitude (WGS84)</th><td>" + position.coords.latitude + " deg</td></tr>" +
+          "<tr><th>Longitude (WGS84)</th><td>" + position.coords.longitude + " deg</td></tr></table>";
+        }
+         
+        function displayError(positionError) {
+          alert("error");
+        }
+
+        function displayOttersNearCurrentLocation() {
+          var bounds = osMap.getExtent();
+          var TL = new OpenSpace.MapPoint(bounds.right, bounds.top);
+          var BR = new OpenSpace.MapPoint(bounds.left, bounds.bottom);
+          var gridProjection = new OpenSpace.GridProjection();
+          TL = gridProjection.getLonLatFromMapPoint(TL);  
+          BR = gridProjection.getLonLatFromMapPoint(BR);  
+          
+          var request = OpenLayers.Request.GET({
+                        //url : "http://otterspotter.herokuapp.com/otters",
+                        url : "/otters",
+                        params: {
+                          topLat: TL.lat,
+                          topLong: TL.lon,
+                          bottomLat: BR.lat,
+                          bottomLong: BR.lon
+                        },
+                        async : false
+                      });
+
+      console.log('here!');
+                       
+          var jsonData = JSON.parse(request.responseText);
+                      for (i=0;i<jsonData.otters.length;i++) {
+            var otter = jsonData.otters[i];
+      console.log('Adding an otter');
+            addOtter(otter.long, otter.lat, null);
+                      }
+        }
+         
+        try {
+          if (typeof navigator.geolocation === 'undefined'){
+            gl = google.gears.factory.create('beta.geolocation');
+          } else {
+            gl = navigator.geolocation;
+          }
+        } catch(e) {}
+         
+        if (gl) {
+          gl.getCurrentPosition(displayPosition, displayError);
+        } else {
+          alert("Geolocation services are not supported by your web browser.");
+        }
+    </script>
+    <style type="text/css" id="custom-background-css">
+      body { 
+          background-color: #E0E090; 
+      } 
+    </style>
+  </head>
+
+    
+  
+  <body onload="init()">
+    <h1 class="title"><span class="title-sp">sp</span><span class="title-otter">otter</span></h1>
+    <!-- The div below holds the map -->
+    <div id="canvas">
+    <div class="container-fluid">
+        <div class="row-fluid">
+          <div id="search" class="span4">
+              <!--Sidebar content-->
+            <form onsubmit="doSearch();return false;"> <!-- Prevent conventional form submission -->
+               <fieldset>
+                 <legend>Search for otters</legend>
+                 <label>Search param 1</label>
+                   
+                   <div class="input-append">
+                  <input name="searchparam1" id="searchparam1" placeholder="Type something..." type="text"></input>
+                  <!--  <i class="icon-search"></i> -->
+                  <!--  <button class="btn btn-primary" name="submit" onclick="doSearch();return false;" href="#" >Search</button> -->
+                  <span class="add-on"><i class="icon-search"></i></span>
+                  <div class="btn-group">
+                    <a class="btn btn-primary" href="#" onclick="displayOttersNearCurrentLocation();return false;">Search</a>
+                    <a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                      <li><a href="#"><i class="icon-pencil"></i> Edit</a></li>
+                      <li><a href="#"><i class="icon-trash"></i> Delete</a></li>
+                      <li><a href="#"><i class="icon-ban-circle"></i> Ban</a></li>
+                      <li class="divider"></li>
+                      <li><a href="#"><i class="i"></i> Make admin</a></li>
+                    </ul>
+                  </div>
+               </div>
+                 </fieldset>
+                 <p id="yourLocation">Location: unknown</p>
+              </form>
+          </div>
+          <!--  <div id="spacer" class="span1"></div> -->
+          <div id="map" class="span8">
+          <!--Body content-->
+          </div>
+        </div>
+      </div>
+      </div>
+      
+    <!--  <div id="map"></div>
+      <div id="search" style="float:left">
+         <form>
+             <input name="searchparam1" id="searchparam1"></input>
+             <button name="submit" onclick="doSearch();return false;" href="#" >Search</button>
+         </form>
+      </div>
+      -->
+  </body>
+</html>
