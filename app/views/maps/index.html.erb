@@ -24,55 +24,45 @@
           var size = new OpenLayers.Size(75,75);
           var offset = new OpenLayers.Pixel(-size.w/2, -size.h/2);
           otterIcon = new OpenSpace.Icon('http://otterspotter.herokuapp.com/otter.png', size, offset);
-                      console.log("Otter icon has been loaded");
         }
 
         function addMarker(pos, icon, content) {
           marker = osMap.createMarker(pos,icon,content);
           marker.map = osMap;
           markers.addMarker(marker);
-              }
+        }
 
         function getNearestOtter(dataset) {
-                      // TODO
-                    }
+          // TODO
+        }
 
         // returns the date of the last sighting
         // for a particular otter site.
-                    // returns null if the sighting was never made
-              function getLastSightingDate(data) {
-                      if (data.v5 == 'P') {
-                        return data.dateV5
-                      } else if (data.v4 == 'P') {
-                        return data.dateV4;
-                      } else if (data.v3 == 'P') {
-                        return data.dateV3;
-                      } else if (data.v2 == 'P') {
-                        return data.dateV2;
-                      } else if (data.v1 == 'P') {
-                        return data.dateV1;
-                      } else {
-      return null;
-                      }
-                    }
+        // returns null if the sighting was never made
+        function getLastSightingDate(data) {
+          if (data.v5 == 'P') {
+            return data.dateV5
+          } else if (data.v4 == 'P') {
+            return data.dateV4;
+          } else if (data.v3 == 'P') {
+            return data.dateV3;
+          } else if (data.v2 == 'P') {
+            return data.dateV2;
+          } else if (data.v1 == 'P') {
+            return data.dateV1;
+          } else {
+            return null;
+          }
+        }
 
         function addOtter(longitude, latitude, data) {
-          // TODO - remove these if statements when data is actually being passed in
-          if (data) {
-                        var lonlat = new OpenLayers.LonLat(data.long, data.lat);
-                      } else {
-            var lonlat = new OpenLayers.LonLat(longitude, latitude);
-          }
+          var lonlat = new OpenLayers.LonLat(data.long, data.lat);
           var gridProjection = new OpenSpace.GridProjection();
           var pos = gridProjection.getMapPointFromLonLat(lonlat);
-          if (data) { 
-                        var content = 'Site name: '+data.siteName+'<br />Date sighted: '+getLastSightingDate(data);
-            if (data.mink == 'P') {
-              content = content + '<br/>Mink also present';
-            }
-          } else {
-                        var content = 'Otter!';
-                      }
+          var content = 'Site name: '+data.siteName+'<br />Date sighted: '+getLastSightingDate(data);
+          if (data.mink == 'P') {
+            content = content + '<br/>Mink also present!';
+          }
           addMarker(pos,otterIcon.clone(),content);
         }
         
@@ -107,25 +97,22 @@
           BR = gridProjection.getLonLatFromMapPoint(BR);  
           
           var request = OpenLayers.Request.GET({
-                        //url : "http://otterspotter.herokuapp.com/otters",
-                        url : "/otters",
-                        params: {
-                          topLat: TL.lat,
-                          topLong: TL.lon,
-                          bottomLat: BR.lat,
-                          bottomLong: BR.lon
-                        },
-                        async : false
-                      });
-
-      console.log('here!');
+            //url : "http://otterspotter.herokuapp.com/otters",
+            url : "/otters",
+            params: {
+              topLat: TL.lat,
+              topLong: TL.lon,
+              bottomLat: BR.lat,
+              bottomLong: BR.lon
+            },
+            async : false
+          });
                        
           var jsonData = JSON.parse(request.responseText);
-                      for (i=0;i<jsonData.otters.length;i++) {
+          for (i=0;i<jsonData.otters.length;i++) {
             var otter = jsonData.otters[i];
-      console.log('Adding an otter');
-            addOtter(otter.long, otter.lat, null);
-                      }
+            addOtter(otter);
+          }
         }
          
         try {
