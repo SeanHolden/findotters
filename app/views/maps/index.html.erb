@@ -57,7 +57,7 @@
 
         function addOtter(data) {
           var lastSighting = getLastSightingDate(data);
-          if (data != null) { 
+          if (lastSightin != null) { 
             var lonlat = new OpenLayers.LonLat(data.long, data.lat);
             var gridProjection = new OpenSpace.GridProjection();
             var pos = gridProjection.getMapPointFromLonLat(lonlat);
