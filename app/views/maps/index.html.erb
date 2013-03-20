@@ -51,19 +51,22 @@
           } else if (data.v1 == 'P') {
             return data.dateV1;
           } else {
-            return "Never sighted.";
+            return null;
           }
         }
 
         function addOtter(data) {
-          var lonlat = new OpenLayers.LonLat(data.long, data.lat);
-          var gridProjection = new OpenSpace.GridProjection();
-          var pos = gridProjection.getMapPointFromLonLat(lonlat);
-          var content = 'Site name: '+data.siteName+'<br />Date sighted: '+getLastSightingDate(data);
-          if (data.mink == 'P') {
-            content = content + '<br/>Mink also present!';
+          var lastSighting = getLastSightingData(data);
+          if (data != null) { 
+            var lonlat = new OpenLayers.LonLat(data.long, data.lat);
+            var gridProjection = new OpenSpace.GridProjection();
+            var pos = gridProjection.getMapPointFromLonLat(lonlat);
+            var content = 'Site name: '+data.siteName+'<br />Date sighted: '+lastSighting;
+            if (data.mink == 'P') {
+                content = content + '<br/>Mink also present!';
+            }
+            addMarker(pos,otterIcon.clone(),content);
           }
-          addMarker(pos,otterIcon.clone(),content);
         }
         
         var gl;
